@@ -7,7 +7,7 @@
 
   <!-- ✅ Use Thymeleaf for linking CSS -->
   <link href="https://fonts.googleapis.com/css2?family=Andada+Pro&display=swap" rel="stylesheet" />
-<!--  <link rel="stylesheet" th:href="@{/css_files/capture.css}" />-->
+  <!--  <link rel="stylesheet" th:href="@{/css_files/capture.css}" />-->
 
   <style>
     /* Responsive table styles */
@@ -126,6 +126,16 @@
       cursor: not-allowed;
     }
 
+    .camera-switch {
+      background-color: #28a745 !important;
+      font-size: 12px;
+      padding: 8px 16px;
+    }
+
+    .camera-switch:hover {
+      background-color: #218838 !important;
+    }
+
     #video {
       max-width: 100%;
       height: auto;
@@ -155,19 +165,28 @@
         max-height: 100px;
       }
     }
+
+    .camera-info {
+      font-size: 12px;
+      color: #666;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
 <div class="camera-container">
   <h2>Take a Photo</h2>
 
-  <video id="video" width="320" height="240" autoplay></video>
+  <video id="video" width="320" height="240" autoplay playsinline></video>
 
   <div class="button-group">
     <button id="startBtn">Start Camera</button>
     <button id="captureBtn" disabled>Capture</button>
+    <button id="switchBtn" class="camera-switch" disabled>Switch Camera</button>
     <button id="stopBtn" disabled>Process Images</button>
   </div>
+
+  <div id="cameraInfo" class="camera-info"></div>
 
   <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
 </div>
@@ -182,38 +201,118 @@
 
 <script>
   let stream;
+  let currentFacingMode = 'environment'; // Start with back camera
+  let availableCameras = [];
+
   const video = document.getElementById('video');
   const canvas = document.getElementById('canvas');
   const capturedImagesDiv = document.getElementById('capturedImages');
   const resultsSection = document.getElementById('resultsSection');
   const resultsContainer = document.getElementById('resultsContainer');
+  const cameraInfo = document.getElementById('cameraInfo');
   const capturedImages = [];
 
   const startBtn = document.getElementById('startBtn');
   const captureBtn = document.getElementById('captureBtn');
+  const switchBtn = document.getElementById('switchBtn');
   const stopBtn = document.getElementById('stopBtn');
 
   startBtn.addEventListener('click', startCamera);
   captureBtn.addEventListener('click', capturePhoto);
+  switchBtn.addEventListener('click', switchCamera);
   stopBtn.addEventListener('click', stopCamera);
 
-  function startCamera() {
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(mediaStream => {
-        stream = mediaStream;
-        video.srcObject = stream;
-        video.style.display = 'block';
-        canvas.style.display = 'none';
+  // Check available cameras on page load
+  navigator.mediaDevices.enumerateDevices()
+    .then(devices => {
+      availableCameras = devices.filter(device => device.kind === 'videoinput');
+      console.log('Available cameras:', availableCameras.length);
+    })
+    .catch(err => console.error('Error enumerating devices:', err));
 
-        // Update button states
-        startBtn.disabled = true;
-        captureBtn.disabled = false;
-        stopBtn.disabled = false;
-      })
-      .catch(err => {
-        console.error("Camera error:", err);
-        alert("Failed to access camera.");
-      });
+  async function startCamera() {
+    try {
+      // Stop any existing stream
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+
+      // Enhanced camera constraints for mobile devices
+      const constraints = {
+        video: {
+          facingMode: currentFacingMode,
+          width: { ideal: 1280, max: 1920 },
+          height: { ideal: 720, max: 1080 },
+          frameRate: { ideal: 30, max: 60 }
+        }
+      };
+
+      // Try to get the preferred camera
+      try {
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (error) {
+        console.warn('Preferred camera not available, trying alternative:', error);
+
+        // Fallback: try the opposite facing mode
+        const fallbackConstraints = {
+          video: {
+            facingMode: currentFacingMode === 'environment' ? 'user' : 'environment',
+            width: { ideal: 1280, max: 1920 },
+            height: { ideal: 720, max: 1080 }
+          }
+        };
+
+        try {
+          stream = await navigator.mediaDevices.getUserMedia(fallbackConstraints);
+          currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+        } catch (fallbackError) {
+          // Final fallback: any available camera
+          stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        }
+      }
+
+      video.srcObject = stream;
+      video.style.display = 'block';
+      canvas.style.display = 'none';
+
+      // Update button states
+      startBtn.disabled = true;
+      captureBtn.disabled = false;
+      stopBtn.disabled = false;
+
+      // Enable switch button only if multiple cameras are available
+      switchBtn.disabled = availableCameras.length <= 1;
+
+      // Update camera info
+      updateCameraInfo();
+
+    } catch (err) {
+      console.error("Camera error:", err);
+      alert("Failed to access camera. Please ensure camera permissions are granted.");
+      cameraInfo.textContent = "Camera access failed";
+    }
+  }
+
+  function updateCameraInfo() {
+    const track = stream.getVideoTracks()[0];
+    if (track) {
+      const settings = track.getSettings();
+      const isBackCamera = currentFacingMode === 'environment';
+      cameraInfo.textContent = `Using: ${isBackCamera ? 'Back' : 'Front'} Camera (${settings.width}x${settings.height})`;
+    }
+  }
+
+  async function switchCamera() {
+    if (availableCameras.length <= 1) {
+      alert("Only one camera available");
+      return;
+    }
+
+    // Toggle between front and back camera
+    currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+
+    // Restart camera with new facing mode
+    await startCamera();
   }
 
   function capturePhoto() {
@@ -222,7 +321,7 @@
     canvas.height = video.videoHeight;
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    const imageDataUrl = canvas.toDataURL('image/png');
+    const imageDataUrl = canvas.toDataURL('image/jpeg', 0.9); // Use JPEG for better compression
 
     const img = document.createElement('img');
     img.src = imageDataUrl;
@@ -248,7 +347,7 @@
     // Show loading state
     showLoading();
 
-    fetch('http://localhost:8080/CaptureImages', {
+    fetch('http://localhost:8080/capture', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ images: capturedImages })
@@ -340,8 +439,10 @@
   function resetButtonStates() {
     startBtn.disabled = false;
     captureBtn.disabled = true;
+    switchBtn.disabled = true;
     stopBtn.disabled = true;
     stopBtn.textContent = 'Process Images';
+    cameraInfo.textContent = '';
   }
 
   // Initialize button states

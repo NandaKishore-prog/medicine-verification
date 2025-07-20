@@ -8,7 +8,7 @@ public class ContextController {
 
     @GetMapping("/")
     public String IndexPage(){
-        return "/index";
+        return "index";
     }
     @GetMapping("/about")
     public String aboutPage() {

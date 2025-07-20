@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Capture Photo</title>
+
+  <!-- ✅ Use Thymeleaf for linking CSS -->
+  <link href="https://fonts.googleapis.com/css2?family=Andada+Pro&display=swap" rel="stylesheet" />
+<!--  <link rel="stylesheet" th:href="@{/css_files/capture.css}" />-->
+
+  <style>
+    /* Responsive table styles */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      margin-top: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .responsive-table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+      min-width: 300px;
+    }
+
+    .responsive-table th,
+    .responsive-table td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .responsive-table th {
+      background-color: #f8f9fa;
+      font-weight: 600;
+      color: #333;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .responsive-table tr:hover {
+      background-color: #f5f5f5;
+    }
+
+    .responsive-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Mobile responsive adjustments */
+    @media screen and (max-width: 768px) {
+      .responsive-table th,
+      .responsive-table td {
+        padding: 8px 12px;
+        font-size: 14px;
+      }
+
+      .responsive-table th:first-child,
+      .responsive-table td:first-child {
+        width: 60px;
+        text-align: center;
+      }
+    }
+
+    @media screen and (max-width: 480px) {
+      .responsive-table {
+        font-size: 12px;
+      }
+
+      .responsive-table th,
+      .responsive-table td {
+        padding: 6px 8px;
+      }
+    }
+
+    /* Loading and result states */
+    .loading {
+      text-align: center;
+      padding: 20px;
+      font-style: italic;
+      color: #666;
+    }
+
+    .no-results {
+      text-align: center;
+      padding: 20px;
+      color: #888;
+      background-color: #f9f9f9;
+      border-radius: 8px;
+    }
+
+    /* Button and video container responsive styles */
+    .camera-container {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin: 15px 0;
+    }
+
+    .button-group button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s;
+    }
+
+    .button-group button:hover {
+      background-color: #0056b3;
+    }
+
+    .button-group button:disabled {
+      background-color: #6c757d;
+      cursor: not-allowed;
+    }
+
+    #video {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .captured-images {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin: 20px 0;
+    }
+
+    .captured-images img {
+      max-width: 150px;
+      max-height: 150px;
+      object-fit: cover;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    @media screen and (max-width: 480px) {
+      .captured-images img {
+        max-width: 100px;
+        max-height: 100px;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="camera-container">
+  <h2>Take a Photo</h2>
+
+  <video id="video" width="320" height="240" autoplay></video>
+
+  <div class="button-group">
+    <button id="startBtn">Start Camera</button>
+    <button id="captureBtn" disabled>Capture</button>
+    <button id="stopBtn" disabled>Process Images</button>
+  </div>
+
+  <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+</div>
+
+<h3>Captured Photos:</h3>
+<div id="capturedImages" class="captured-images"></div>
+
+<div id="resultsSection" style="display:none;">
+  <h3>Detected Medicines:</h3>
+  <div id="resultsContainer"></div>
+</div>
+
+<script>
+  let stream;
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  const capturedImagesDiv = document.getElementById('capturedImages');
+  const resultsSection = document.getElementById('resultsSection');
+  const resultsContainer = document.getElementById('resultsContainer');
+  const capturedImages = [];
+
+  const startBtn = document.getElementById('startBtn');
+  const captureBtn = document.getElementById('captureBtn');
+  const stopBtn = document.getElementById('stopBtn');
+
+  startBtn.addEventListener('click', startCamera);
+  captureBtn.addEventListener('click', capturePhoto);
+  stopBtn.addEventListener('click', stopCamera);
+
+  function startCamera() {
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(mediaStream => {
+        stream = mediaStream;
+        video.srcObject = stream;
+        video.style.display = 'block';
+        canvas.style.display = 'none';
+
+        // Update button states
+        startBtn.disabled = true;
+        captureBtn.disabled = false;
+        stopBtn.disabled = false;
+      })
+      .catch(err => {
+        console.error("Camera error:", err);
+        alert("Failed to access camera.");
+      });
+  }
+
+  function capturePhoto() {
+    const context = canvas.getContext('2d');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const imageDataUrl = canvas.toDataURL('image/png');
+
+    const img = document.createElement('img');
+    img.src = imageDataUrl;
+    capturedImagesDiv.appendChild(img);
+
+    capturedImages.push(imageDataUrl);
+
+    // Update stop button text to show number of captured images
+    stopBtn.textContent = `Process Images (${capturedImages.length})`;
+  }
+
+  function stopCamera() {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+    video.style.display = 'none';
+
+    if (capturedImages.length === 0) {
+      alert("No images captured to send.");
+      return;
+    }
+
+    // Show loading state
+    showLoading();
+
+    fetch('http://localhost:8080/CaptureImages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ images: capturedImages })
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Image upload failed');
+        return res.json(); // ✅ Automatic JSON parsing
+      })
+      .then(detectedList => {
+        console.log('Detected medicines:', detectedList);
+
+        // Clear captured images preview
+        capturedImagesDiv.innerHTML = '';
+
+        // Show results
+        showResults(detectedList);
+
+        // Reset button states
+        resetButtonStates();
+
+        // Clear captured images array
+        capturedImages.length = 0;
+      })
+      .catch(error => {
+        console.error('Error during image processing:', error);
+        showError('Something went wrong during processing.');
+        resetButtonStates();
+      });
+  }
+
+  function showLoading() {
+    resultsContainer.innerHTML = '<div class="loading">Processing images and detecting medicines...</div>';
+    resultsSection.style.display = 'block';
+  }
+
+  function showResults(detectedList) {
+    resultsContainer.innerHTML = '';
+
+    if (!detectedList || detectedList.length === 0) {
+      resultsContainer.innerHTML = '<div class="no-results">No medicines detected in the captured images.</div>';
+      return;
+    }
+
+    // Create responsive table container
+    const tableContainer = document.createElement('div');
+    tableContainer.className = 'table-container';
+
+    // Create responsive table
+    const table = document.createElement('table');
+    table.className = 'responsive-table';
+
+    // Create header
+    const headerRow = document.createElement('tr');
+    const th1 = document.createElement('th');
+    th1.textContent = 'S.No.';
+    const th2 = document.createElement('th');
+    th2.textContent = 'Detected Medicine';
+
+    headerRow.appendChild(th1);
+    headerRow.appendChild(th2);
+    table.appendChild(headerRow);
+
+    // Create rows for detected medicines
+    detectedList.forEach((medicine, index) => {
+      const row = document.createElement('tr');
+
+      const serialCell = document.createElement('td');
+      serialCell.textContent = index + 1;
+
+      const textCell = document.createElement('td');
+      textCell.textContent = medicine || 'Unknown';
+
+      row.appendChild(serialCell);
+      row.appendChild(textCell);
+      table.appendChild(row);
+    });
+
+    tableContainer.appendChild(table);
+    resultsContainer.appendChild(tableContainer);
+
+    alert(`Detection complete. Found ${detectedList.length} medicine(s).`);
+  }
+
+  function showError(message) {
+    resultsContainer.innerHTML = `<div class="no-results" style="color: #dc3545; border-color: #dc3545;">${message}</div>`;
+    resultsSection.style.display = 'block';
+  }
+
+  function resetButtonStates() {
+    startBtn.disabled = false;
+    captureBtn.disabled = true;
+    stopBtn.disabled = true;
+    stopBtn.textContent = 'Process Images';
+  }
+
+  // Initialize button states
+  resetButtonStates();
+</script>
+</body>
+</html>

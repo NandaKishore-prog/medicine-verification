@@ -1,0 +1,43 @@
+body {
+  font-family: 'Andada Pro', serif;
+  text-align: center;
+  margin: 50px;
+  background-color: #e3f2fd;
+  color: #0d47a1;
+}
+
+h2 {
+  color: #0d47a1;
+}
+
+input, button {
+  display: block;
+  margin: 10px auto;
+  padding: 12px;
+  width: 80%;
+  max-width: 300px;
+  border: 2px solid #0d47a1;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+input {
+  background-color: #ffffff;
+}
+
+button {
+  background-color: #0d47a1;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+button:hover {
+  background-color: #1565c0;
+  transform: scale(1.05);
+}
+
+#result {
+  margin-top: 20px;
+  font-weight: bold;
+}

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Contact Us - Hospital</title>
+    <link rel="stylesheet" href="../css_files/contact.css" />
+</head>
+<body>
+<div class="container fade-in">
+    <h1>Contact Us</h1>
+    <div class="contact-info">
+        <p><strong>Address:</strong> Srinivasan Rajalakshmi Memorial Hospital, No. 11/77, 6th Street, Voltas Colony, Nanganallur, Kanchipuram, Tamil Nadu - 600061</p>
+        <p><strong>Phone:</strong> +91 6868856897</p>
+        <p><strong>Email:</strong> Rajalakshmi@hospital.com</p>
+        <p><strong>Working Hours:</strong> Mon-Sat: 8 AM - 8 PM, Sun: 9 AM - 5 PM</p>
+    </div>
+
+    <div class="contact-form">
+        <h2>Get in Touch</h2>
+        <form id="contactForm">
+            <input type="text" id="name" placeholder="Your Name" required />
+            <input type="email" id="email" placeholder="Your Email" required />
+            <textarea id="message" rows="4" placeholder="Your Message" required></textarea>
+            <button type="submit">Send Message</button>
+        </form>
+        <p id="responseMsg" style="color: green; margin-top: 10px;"></p>
+    </div>
+</div>
+
+<script>
+    document.getElementById("contactForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const message = document.getElementById("message").value;
+
+      const response = await fetch("/contactus", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ name, email, message })
+      });
+
+      const result = await response.text(); // or `.json()` if your backend sends JSON
+
+      document.getElementById("responseMsg").textContent =
+        response.ok ? "Message sent successfully!" : `Error: ${result}`;
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Patient Details</title>
+    <link rel="stylesheet" th:href="@{/css_files/doctor_patient.css}" />
+</head>
+<body>
+    <div class="container">
+        <h2>Enter Patient Details</h2>
+        <form action="http://localhost:8080/PatientMed" method="post">
+    <div class="input-group">
+        <label for="code">Patient Code</label>
+        <input type="text" name="code" required />
+    </div>
+    <div class="input-group">
+        <label for="name">Patient Name</label>
+        <input type="text" name="name" required />
+    </div>
+    <div class="input-group">
+        <label for="age">Age</label>
+        <input type="number" name="age" required />
+    </div>
+    <div class="input-group">
+        <label for="gender">Gender</label>
+        <select name="gender" required>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="other">Other</option>
+        </select>
+    </div>
+    <div class="input-group">
+        <label for="diagnosis">Diagnosis</label>
+        <input type="text" name="diagnosis" required />
+    </div>
+    <div class="input-group">
+        <label for="number">Contact Number</label>
+        <input type="tel" name="number" required />
+    </div>
+    <div class="input-group">
+        <label for="address">Address</label>
+        <textarea name="address" rows="3" required></textarea>
+    </div>
+    <div class="input-group">
+        <label for="medications">Current Medications</label>
+        <textarea name="medications" rows="3" required></textarea>
+    </div>
+    <div class="input-group">
+        <label for="doctorNotes">Doctor's Notes</label>
+        <textarea name="doctorNotes" rows="4"></textarea>
+    </div>
+    <button type="submit" class="btn">Submit</button>
+</form>
+    </div>
+
+    <script src="../js_files/dotpat.js"></script>
+</body>
+</html>

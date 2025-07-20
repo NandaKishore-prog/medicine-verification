@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Doctor Login</title>
+    <link rel="stylesheet" th:href="@{/css_files/doctor.css}" />
+</head>
+<body>
+
+    <div class="login-container">
+        <h2>Doctor Login</h2>
+        <form action="" method="post" id="loginForm">
+            <div class="input-group">
+                <label for="username">Username</label>
+                <input type="text" name="username" placeholder="Enter your username" required />
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" name="password" placeholder="Enter your password" required />
+            </div>
+            <button type="submit" class="login-btn">Login</button>
+        </form>
+    </div>
+
+    <script th:src="@{/js_files/doctor.js}"></script>
+</body>
+
+</script>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Verification & Scanner</title>
+  <link href="https://fonts.googleapis.com/css2?family=Andada+Pro&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css_files/paitent.css" />
+</head>
+<body>
+  <h2>Enter Your Details</h2>
+  <input type="text" id="name" placeholder="Enter your name" />
+  <input type="tel" id="phone" placeholder="Enter your phone number" />
+  <button id="verifyBtn">Verify</button>
+  <div id="result"></div>
+
+  <div id="scanner" style="display: none;">
+    <h2>Take a Photo</h2>
+    <video id="video" width="320" height="240" autoplay></video>
+    <button id="captureBtn">Capture</button>
+    <button id="stopBtn">Stop</button>
+    <canvas id="canvas" width="320" height="240"></canvas>
+    <h3>Captured Photos:</h3>
+    <div id="capturedImages"></div>
+  </div>
+
+  <script src="../js_files/paitent.js"></script>
+</body>
+</html>

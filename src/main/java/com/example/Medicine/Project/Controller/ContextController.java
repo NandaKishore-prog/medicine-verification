@@ -47,4 +47,9 @@ public class ContextController {
     public String AppointmentPage() {
         return "appointment";
     }
+    @GetMapping("/doctor")
+    public String DoctorPage() {
+        return "doctor";
+    }
+
 }

@@ -1,2 +1,4 @@
 easyocr
-opencv-python
+opencv-python-headless
+cvzone
+matplotlib

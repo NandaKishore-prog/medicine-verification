@@ -40,8 +40,8 @@ public class ImageProcessingService {
                 String imagePath = IMAGE_DIR + "/image_" + i + ".png";
 
                 ProcessBuilder processBuilder = new ProcessBuilder(
-                        "C:\\Users\\Lenovo\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
-                        "src/main/PythonFiles/pyeasyocr.py",
+                        "python3", // ✅ Use system python3 (make sure it's installed in Render)
+                        "/app/scripts/pyeasyocr.py", // ✅ Absolute path to the script
                         imagePath
                 );
                 processBuilder.redirectErrorStream(true);

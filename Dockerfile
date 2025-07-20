@@ -1,40 +1,28 @@
-# Use Eclipse Temurin JDK 21 base image
 FROM eclipse-temurin:21-jdk
 
-# Set working directory inside the container
 WORKDIR /app
 
-# Install Python and pip
+# Install Python, pip, and OpenCV dependency
 RUN apt-get update && \
-    apt-get install -y python3 python3-pip && \
+    apt-get install -y python3 python3-pip libgl1 && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy Python requirements and install them
+# Copy and install Python dependencies
 COPY requirements.txt .
 RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt
 
-# Copy Maven wrapper and project files
+# Copy Maven and Spring Boot files
 COPY mvnw ./
 COPY .mvn .mvn
 COPY pom.xml .
 
-# Make Maven wrapper executable
 RUN chmod +x mvnw
-
-# Pre-download Maven dependencies (optional optimization)
 RUN ./mvnw dependency:go-offline -B
 
-# Copy Java source code
 COPY src ./src
-
-# Copy Python scripts to known path in container
 COPY src/main/PythonFiles /app/scripts
 
-# Build Spring Boot application (skipping tests for faster builds)
 RUN ./mvnw clean package -DskipTests
 
-# Expose the default Spring Boot port
 EXPOSE 8080
-
-# Run the Spring Boot application
 CMD ["java", "-jar", "target/Medicine-Project-0.0.1-SNAPSHOT.jar"]

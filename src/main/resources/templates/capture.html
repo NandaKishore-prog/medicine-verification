@@ -347,7 +347,7 @@
     // Show loading state
     showLoading();
 
-    fetch('http://localhost:8080/capture', {
+    fetch('/capture', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ images: capturedImages })

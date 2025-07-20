@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class ContextController {
 
-    @GetMapping({"/index","/"})
+    @GetMapping("/")
     public String IndexPage(){
         return "/index";
     }

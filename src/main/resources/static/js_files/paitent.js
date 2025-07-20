@@ -82,7 +82,7 @@ function processCapturedImages() {
   }
 
   capturedImages.forEach((imageDataUrl, index) => {
-    fetch('http://localhost:5000/save_image', {
+    fetch('/save_image', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

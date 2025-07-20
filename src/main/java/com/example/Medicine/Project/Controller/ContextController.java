@@ -25,11 +25,6 @@ public class ContextController {
         return "patient";
     }
 
-    @GetMapping("/doctor")
-    public String doctorPage() {
-        return "doctor";
-    }
-
     @GetMapping("/contact")
     public String contactPage() {
         return "contact";
